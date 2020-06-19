@@ -29,10 +29,10 @@ Lista_AMEX=[]
 Lista_Diners_Discover=[]
 Row=1#reprezinta randul de pe care incepem sa scriem datele
 Column=0#reprezinta coloana de pe care incepem sa scriem datele
-locatie_fisiere_Avis=""
-locatie_fisiere_Budget=""
-locatie_arhive_Avis=""
-locatie_arhive_Budget=""
+locatie_fisiere_brand1=""
+locatie_fisiere_brand2=""
+locatie_arhive_brand1=""
+locatie_arhive_brand2=""
 
 class Contract():
     def __init__(self,contract,card,expiration,suma,autorizare,client,CI_Date,Brand):
@@ -171,7 +171,7 @@ def alerta_mail(text):
     toaddr = "___"
     msg['From'] = fromaddr
     msg['To'] = toaddr
-    msg['Subject'] = "Erori incasari Avis&Budget "
+    msg['Subject'] = "Erori incasari brand1&brand2 "
     body = str(text)
     part = MIMEBase('application', 'octet-stream')
     msg.attach(MIMEText(body, 'html'))
@@ -194,11 +194,11 @@ def trimitere_email(nume_fisier_procesat,zi,refund,fara_incasari):
     msg['From'] = fromaddr
     msg['To'] = toaddr
     msg['CC'] = toccaddr
-    msg['Subject'] = "Incasari Avis&Budget "+zi
+    msg['Subject'] = "Incasari brand1&brand2 "+zi
     if fara_incasari == True:
         body = "In ziua de "+zi+" nu au fost incasari.<BR><BR><BR> Acest mail a fost generat automat, va rugam nu dati reply."
     else:
-        body = "Fisierul cu incasarile Avis&Budget din "+zi+" este disponibil in atasament.<BR><BR><BR> Acest mail a fost generat automat, va rugam nu dati reply."
+        body = "Fisierul cu incasarile brand1&brand2 din "+zi+" este disponibil in atasament.<BR><BR><BR> Acest mail a fost generat automat, va rugam nu dati reply."
         attachment = open(os.path.join(str(os.getcwd()),nume_fisier_procesat), "rb")
         part = MIMEBase('application', 'octet-stream')
         part.set_payload((attachment).read())
@@ -213,7 +213,7 @@ def trimitere_email(nume_fisier_procesat,zi,refund,fara_incasari):
     server.quit()
     time.sleep(2)
 
-def main(fisier_Avis,fisier_Budget,zi):
+def main(fisier_brand1,fisier_brand2,zi):
     global RawText, workbook, worksheet, merge_format, formattitlu, formatcontinut, formatcontinut2, Lista_Barclays, Lista_Refund, Lista_AMEX, Lista_Diners_Discover
     Lista_Barclays=[]
     Lista_Refund=[]
@@ -221,11 +221,11 @@ def main(fisier_Avis,fisier_Budget,zi):
     Lista_Diners_Discover=[]
     fara_incasari = False
     try:
-        RawText=open(fisier_Avis,"r") #Incearca deschiderea fisierului Avis care trebuie procesat
-        impartire_in_liste("Avis")
+        RawText=open(fisier_brand1,"r") #Incearca deschiderea fisierului brand1 care trebuie procesat
+        impartire_in_liste("brand1")
         RawText.close()
-        RawText=open(fisier_Budget,"r") #Incearca deschiderea fisierului Budget care trebuie procesat
-        impartire_in_liste("Budget")
+        RawText=open(fisier_brand2,"r") #Incearca deschiderea fisierului brand2 care trebuie procesat
+        impartire_in_liste("brand2")
         RawText.close()
         nume_fisier_procesat = "CCAA06EQ-RUN  ON   "+zi+".xlsx"
         workbook=xlsxwriter.Workbook(nume_fisier_procesat)
@@ -251,9 +251,9 @@ def main(fisier_Avis,fisier_Budget,zi):
         if (Lista_Barclays == []) &(Lista_Refund == [])& (Lista_AMEX == []) & (Lista_Diners_Discover == []):
             fara_incasari = True
         trimitere_email(nume_fisier_procesat,zi,Lista_Refund,fara_incasari)
-        shutil.copy(nume_fisier_procesat,os.path.join(locatie_fisiere_Avis,nume_fisier_procesat))
-        shutil.move(nume_fisier_procesat,os.path.join(locatie_fisiere_Budget,nume_fisier_procesat))
-        scriere_log(": S-a procesat cu succes fisierul Avis&Budget '"+nume_fisier_procesat+"'\n")
+        shutil.copy(nume_fisier_procesat,os.path.join(locatie_fisiere_brand1,nume_fisier_procesat))
+        shutil.move(nume_fisier_procesat,os.path.join(locatie_fisiere_brand2,nume_fisier_procesat))
+        scriere_log(": S-a procesat cu succes fisierul brand1&brand2 '"+nume_fisier_procesat+"'\n")
         for lista in [Lista_Barclays,Lista_Diners_Discover,Lista_AMEX,Lista_Refund]:
             for element in lista:
                 inserare_in_DB(element,"CCAA06EQ-RUN  ON   "+zi+".txt")
@@ -316,50 +316,50 @@ if DB_connected == True:
         zi_formatata=datetime.strftime(datetime.strptime(zi,"%Y-%m-%d"),"%d%b%y")
         zi_din_an=str(time.strptime(zi,"%Y-%m-%d").tm_yday).rjust(3,"0")
         try:
-            zip=zipfile.ZipFile(os.path.join(locatie_arhive_Avis,"eproccda{0}.zip".format(zi_din_an)))
-            zip.extractall(os.path.join(locatie_fisiere_Avis,"TEMP"))
-            shutil.move(os.path.join(os.path.join(locatie_fisiere_Avis,"TEMP"),"CCAA06EQ"),os.path.join(locatie_fisiere_Avis,"CCAA06EQ-RUN  ON   {0}.txt".format(zi_formatata)))
+            zip=zipfile.ZipFile(os.path.join(locatie_arhive_brand1,"eproccda{0}.zip".format(zi_din_an)))
+            zip.extractall(os.path.join(locatie_fisiere_brand1,"TEMP"))
+            shutil.move(os.path.join(os.path.join(locatie_fisiere_brand1,"TEMP"),"CCAA06EQ"),os.path.join(locatie_fisiere_brand1,"CCAA06EQ-RUN  ON   {0}.txt".format(zi_formatata)))
         except(Exception) as error:
             eroare_alerta_mail += str(error)+'<BR>'
         try:
-            zip=zipfile.ZipFile(os.path.join(locatie_arhive_Budget,"bud_eproccda{0}.zip".format(zi_din_an)))
-            zip.extractall(os.path.join(locatie_fisiere_Budget,"TEMP"))
-            shutil.move(os.path.join(os.path.join(locatie_fisiere_Budget,"TEMP"),"CCAA06EQ"),os.path.join(locatie_fisiere_Budget,"CCAA06EQ-RUN  ON   {0}.txt".format(zi_formatata)))
+            zip=zipfile.ZipFile(os.path.join(locatie_arhive_brand2,"bud_eproccda{0}.zip".format(zi_din_an)))
+            zip.extractall(os.path.join(locatie_fisiere_brand2,"TEMP"))
+            shutil.move(os.path.join(os.path.join(locatie_fisiere_brand2,"TEMP"),"CCAA06EQ"),os.path.join(locatie_fisiere_brand2,"CCAA06EQ-RUN  ON   {0}.txt".format(zi_formatata)))
         except(Exception) as error:
             eroare_alerta_mail += str(error)+'<BR>'
             
         try:
-            zip=zipfile.ZipFile(os.path.join(locatie_arhive_Avis,"eproccdb{0}.zip".format(zi_din_an)))
-            zip.extractall(os.path.join(locatie_fisiere_Avis,"TEMP"))
-            shutil.move(os.path.join(os.path.join(locatie_fisiere_Avis,"TEMP"),"CCAA06ES"),os.path.join(locatie_fisiere_Avis,"CCAA06ES-RUN  ON   {0}.txt".format(zi_formatata)))
+            zip=zipfile.ZipFile(os.path.join(locatie_arhive_brand1,"eproccdb{0}.zip".format(zi_din_an)))
+            zip.extractall(os.path.join(locatie_fisiere_brand1,"TEMP"))
+            shutil.move(os.path.join(os.path.join(locatie_fisiere_brand1,"TEMP"),"CCAA06ES"),os.path.join(locatie_fisiere_brand1,"CCAA06ES-RUN  ON   {0}.txt".format(zi_formatata)))
         except(Exception) as error:
             eroare_alerta_mail += str(error)+'<BR>'
                            
         try:
-            zip=zipfile.ZipFile(os.path.join(locatie_arhive_Budget,"bud_eproccdb{0}.zip".format(zi_din_an)))
-            zip.extractall(os.path.join(locatie_fisiere_Budget,"TEMP"))
-            shutil.move(os.path.join(os.path.join(locatie_fisiere_Budget,"TEMP"),"CCAA06ES"),os.path.join(locatie_fisiere_Budget,"CCAA06ES-RUN  ON   {0}.txt".format(zi_formatata)))
+            zip=zipfile.ZipFile(os.path.join(locatie_arhive_brand2,"bud_eproccdb{0}.zip".format(zi_din_an)))
+            zip.extractall(os.path.join(locatie_fisiere_brand2,"TEMP"))
+            shutil.move(os.path.join(os.path.join(locatie_fisiere_brand2,"TEMP"),"CCAA06ES"),os.path.join(locatie_fisiere_brand2,"CCAA06ES-RUN  ON   {0}.txt".format(zi_formatata)))
         except(Exception) as error:
             eroare_alerta_mail += str(error)+'<BR>'
 
         nume_fisier="CCAA06EQ-RUN  ON   "+str(zi_formatata)+".txt"
-        fisier_Avis=os.path.join(locatie_fisiere_Avis,nume_fisier)
-        fisier_Budget=os.path.join(locatie_fisiere_Budget,nume_fisier)
-        if os.path.isfile(fisier_Avis) and os.path.isfile(fisier_Budget):
-            scriere_log(": Exista fisierul '"+nume_fisier+"' atat pentru Avis cat si pentru Budget\n")
-            main(fisier_Avis,fisier_Budget,str(zi_formatata))
+        fisier_brand1=os.path.join(locatie_fisiere_brand1,nume_fisier)
+        fisier_brand2=os.path.join(locatie_fisiere_brand2,nume_fisier)
+        if os.path.isfile(fisier_brand1) and os.path.isfile(fisier_brand2):
+            scriere_log(": Exista fisierul '"+nume_fisier+"' atat pentru brand1 cat si pentru brand2\n")
+            main(fisier_brand1,fisier_brand2,str(zi_formatata))
             query = "UPDATE alex.zile_rulate SET rulat='true' WHERE zi_calendaristica='{0}'".format(zi)
             try:
                 cur.execute(query)
                 db.commit()
             except(Exception) as error:
                 eroare_alerta_mail += str(error)+'<BR>'
-        elif os.path.isfile(fisier_Avis) and not os.path.isfile(fisier_Budget):
-            scriere_log(": Nu exista fisierul Budget '"+nume_fisier+"'\n")
-        elif not os.path.isfile(fisier_Avis) and os.path.isfile(fisier_Budget):
-            scriere_log(": Nu exista fisierul Avis '"+nume_fisier+"'\n")
-        elif not os.path.isfile(fisier_Avis) and not os.path.isfile(fisier_Budget):
-            scriere_log(": Nu exista fisierul '"+nume_fisier+"' nici pentru Avis nici pentru Budget\n")
+        elif os.path.isfile(fisier_brand1) and not os.path.isfile(fisier_brand2):
+            scriere_log(": Nu exista fisierul brand2 '"+nume_fisier+"'\n")
+        elif not os.path.isfile(fisier_brand1) and os.path.isfile(fisier_brand2):
+            scriere_log(": Nu exista fisierul brand1 '"+nume_fisier+"'\n")
+        elif not os.path.isfile(fisier_brand1) and not os.path.isfile(fisier_brand2):
+            scriere_log(": Nu exista fisierul '"+nume_fisier+"' nici pentru brand1 nici pentru brand2\n")
             
 
     db.close()
